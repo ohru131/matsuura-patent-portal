@@ -23,6 +23,13 @@ import {
   patents,
   type PatentCategory,
 } from "@/data/patents";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const heroImage = "/manus-storage/matsuura-hero-patent-atlas_163d44b2.jpg";
 const globalImage = "/manus-storage/matsuura-global-threads_d0121101.jpg";
@@ -55,16 +62,37 @@ function RegionPills({ regions }: { regions: string[] }) {
 
 export default function Home() {
   const [activeCategory, setActiveCategory] = useState<PatentCategory | "all">("all");
+  const [activeYear, setActiveYear] = useState("all");
   const [query, setQuery] = useState("");
+
+  const availableYears = useMemo(
+    () => Array.from(new Set(patents.map((patent) => patent.priority.slice(0, 4)))).sort((a, b) => b.localeCompare(a)),
+    [],
+  );
+
+  const yearCounts = useMemo(
+    () =>
+      availableYears.reduce(
+        (counts, year) => ({
+          ...counts,
+          [year]: patents.filter((patent) => patent.priority.startsWith(year)).length,
+        }),
+        {} as Record<string, number>,
+      ),
+    [availableYears],
+  );
 
   const filteredPatents = useMemo(() => {
     const needle = query.trim().toLocaleLowerCase("ja-JP");
-    return patents.filter((patent) => {
+    return patents
+      .filter((patent) => {
       const inCategory = activeCategory === "all" || patent.category === activeCategory;
+      const inYear = activeYear === "all" || patent.priority.startsWith(activeYear);
       const searchable = `${patent.id} ${patent.title} ${patent.overview} ${patent.category}`.toLocaleLowerCase("ja-JP");
-      return inCategory && (!needle || searchable.includes(needle));
-    });
-  }, [activeCategory, query]);
+      return inCategory && inYear && (!needle || searchable.includes(needle));
+      })
+      .sort((a, b) => b.priority.localeCompare(a.priority) || b.id.localeCompare(a.id));
+  }, [activeCategory, activeYear, query]);
 
   const categoryCounts = useMemo(
     () =>
@@ -84,6 +112,11 @@ export default function Home() {
     .filter((patent): patent is (typeof patents)[number] => Boolean(patent));
 
   const moveToCatalog = () => document.getElementById("catalog")?.scrollIntoView({ behavior: "smooth" });
+  const resetFilters = () => {
+    setActiveCategory("all");
+    setActiveYear("all");
+    setQuery("");
+  };
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-[#f5f0e7] text-[#102c45]">
@@ -255,8 +288,9 @@ export default function Home() {
           <div className="grid items-start gap-10 lg:grid-cols-[264px_minmax(0,1fr)] lg:gap-14">
             <aside className="lg:sticky lg:top-24">
               <div className="border-y border-[#cabba8] py-5">
-                <div className="flex items-center gap-2 text-xs font-medium tracking-[0.12em] text-[#6b5a43]"><SlidersHorizontal size={14} /> FILTER THE ATLAS</div>
+                <div className="flex items-center gap-2 text-xs font-medium tracking-[0.12em] text-[#6b5a43]"><SlidersHorizontal size={14} /> 絞り込み</div>
                 <div className="mt-5 space-y-1">
+                  <p className="filter-heading">技術カテゴリー</p>
                   <button className={`filter-button ${activeCategory === "all" ? "is-active" : ""}`} onClick={() => setActiveCategory("all")} type="button">
                     <span>すべての特許</span><span>{patents.length}</span>
                   </button>
@@ -265,6 +299,21 @@ export default function Home() {
                       <span>{category.label}</span><span>{categoryCounts[category.id]}</span>
                     </button>
                   ))}
+                </div>
+                <div className="mt-6 border-t border-[#d9cdbd] pt-5">
+                  <p className="filter-heading">出願年</p>
+                  <Select onValueChange={setActiveYear} value={activeYear}>
+                    <SelectTrigger aria-label="出願年で絞り込む" className="year-select">
+                      <SelectValue placeholder="すべての年" />
+                    </SelectTrigger>
+                    <SelectContent className="border-[#c8b89e] bg-[#faf7f0] text-[#153951]">
+                      <SelectItem value="all">すべての年（{patents.length}件）</SelectItem>
+                      {availableYears.map((year) => (
+                        <SelectItem key={year} value={year}>{year}年（{yearCounts[year]}件）</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="mt-3 text-xs leading-6 text-[#718392]">出願年の新しい順に表示します。</p>
                 </div>
               </div>
               <div className="mt-8 border-l-2 border-[#b84233] pl-4 text-sm leading-7 text-[#687c8e]">
@@ -281,14 +330,14 @@ export default function Home() {
                   aria-label="特許を検索"
                   className="catalog-search"
                   onChange={(event) => setQuery(event.target.value)}
-                  placeholder="公開番号、題名、目的で検索"
+                  placeholder="公開番号、題名、技術用語で検索"
                   value={query}
                 />
                 {query && <button aria-label="検索をクリア" className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-[#7890a0] hover:text-[#a93629]" onClick={() => setQuery("")} type="button"><X size={16} /></button>}
               </label>
               <div className="mt-5 flex items-center justify-between text-xs text-[#6a7e8f]">
                 <p><span className="font-mono text-[#a93629]">{String(filteredPatents.length).padStart(2, "0")}</span> 件を表示</p>
-                {activeCategory !== "all" && <button className="text-link" onClick={() => setActiveCategory("all")} type="button">分類を解除</button>}
+                {(activeCategory !== "all" || activeYear !== "all" || query) && <button className="text-link" onClick={resetFilters} type="button">条件をリセット</button>}
               </div>
               <div className="mt-5 divide-y divide-[#dbd1c3] border-y border-[#dbd1c3]">
                 {filteredPatents.map((patent, index) => (
@@ -316,7 +365,7 @@ export default function Home() {
                   <div className="py-20 text-center">
                     <Compass className="mx-auto text-[#ba9c65]" size={30} strokeWidth={1.2} />
                     <p className="mt-4 font-serif text-xl text-[#1d405b]">該当する特許が見つかりません。</p>
-                    <button className="text-link mt-3" onClick={() => { setQuery(""); setActiveCategory("all"); }} type="button">検索条件をリセット</button>
+                    <button className="text-link mt-3" onClick={resetFilters} type="button">検索条件をリセット</button>
                   </div>
                 )}
               </div>
