@@ -30,6 +30,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 const heroImage = "/manus-storage/matsuura-hero-patent-atlas_163d44b2.jpg";
 const globalImage = "/manus-storage/matsuura-global-threads_d0121101.jpg";
@@ -64,6 +70,10 @@ export default function Home() {
   const [activeCategory, setActiveCategory] = useState<PatentCategory | "all">("all");
   const [activeYear, setActiveYear] = useState("all");
   const [query, setQuery] = useState("");
+  const categoryIndexes = useMemo(
+    () => new Map(patentCategories.map((category, index) => [category.id, index + 1])),
+    [],
+  );
 
   const availableYears = useMemo(
     () => Array.from(new Set(patents.map((patent) => patent.priority.slice(0, 4)))).sort((a, b) => b.localeCompare(a)),
@@ -88,7 +98,18 @@ export default function Home() {
       .filter((patent) => {
       const inCategory = activeCategory === "all" || patent.category === activeCategory;
       const inYear = activeYear === "all" || patent.priority.startsWith(activeYear);
-      const searchable = `${patent.id} ${patent.title} ${patent.overview} ${patent.category}`.toLocaleLowerCase("ja-JP");
+      const searchable = [
+        patent.id,
+        patent.title,
+        patent.originalTitle,
+        patent.overview,
+        patent.technicalChallenge,
+        patent.priorArt,
+        patent.solution,
+        patent.claimSummary,
+        patent.keywords.join(" "),
+        patent.category,
+      ].join(" ").toLocaleLowerCase("ja-JP");
       return inCategory && inYear && (!needle || searchable.includes(needle));
       })
       .sort((a, b) => b.priority.localeCompare(a.priority) || b.id.localeCompare(a.id));
@@ -121,9 +142,9 @@ export default function Home() {
   return (
     <div className="min-h-screen overflow-x-hidden bg-[#f5f0e7] text-[#102c45]">
       <header className="fixed inset-x-0 top-0 z-50 border-b border-white/10 bg-[#071e38]/95 text-white backdrop-blur-md">
-        <div className="mx-auto flex h-[68px] max-w-[1440px] items-center justify-between px-5 sm:px-8 lg:px-12">
+        <div className="mx-auto flex h-[76px] max-w-[1440px] items-center justify-between px-5 sm:px-8 lg:px-12">
           <a className="group flex items-center gap-3" href="#top" aria-label="松浦融 特許ポータルの先頭へ">
-            <span className="brand-mark"><img alt="松浦融 特許ポータルのシンボル" className="h-12 w-12 object-contain" src={markImage} /></span>
+            <span className="brand-mark"><img alt="松浦融 特許ポータルのシンボル" className="h-14 w-14 object-contain" src={markImage} /></span>
             <div className="leading-none">
               <p className="font-serif text-[15px] tracking-[0.16em]">松浦 融</p>
               <p className="mt-1 font-mono text-[9px] tracking-[0.2em] text-[#aebdcb]">PATENT ARCHIVE</p>
@@ -141,7 +162,7 @@ export default function Home() {
       </header>
 
       <main id="top">
-        <section className="relative isolate min-h-[720px] overflow-hidden bg-[#071e38] pt-[68px] text-white">
+        <section className="relative isolate min-h-[720px] overflow-hidden bg-[#071e38] pt-[76px] text-white">
           <img
             alt="分析技術と特許の航路を表す抽象イメージ"
             className="absolute inset-0 h-full w-full object-cover object-[68%_center] opacity-90"
@@ -197,10 +218,11 @@ export default function Home() {
         <section className="section-shell editorial-section pt-28 lg:pt-36" id="map">
           <div className="grid gap-14 lg:grid-cols-[0.88fr_1.3fr] lg:gap-20">
             <div>
+              <span className="archive-mark" aria-hidden="true"><img alt="" src={markImage} /></span>
               <p className="eyebrow">01 / INVENTION MAP</p>
               <h2 className="display-heading mt-5">技術分野から見る。</h2>
               <p className="body-copy mt-7">
-                本サイトでは、公開公報の内容を材料試験における役割に沿って四つの分野へ整理しています。
+                本サイトでは、公開公報の内容を材料試験における役割に沿って十の分野へ整理しています。
                 気になる分野を選ぶと、該当する特許一覧を確認できます。
               </p>
               <a className="text-link mt-8 inline-flex" href="#catalog">
@@ -221,7 +243,7 @@ export default function Home() {
                   <span aria-hidden="true" className="measurement-ring" />
                   <span className="font-mono text-[11px] tracking-[0.16em] text-[#aa372a]">0{index + 1}</span>
                   <p className="mt-9 font-serif text-2xl text-[#123650]">{category.label}</p>
-                  <p className="mt-3 max-w-[25ch] text-sm leading-7 text-[#597083]">{category.description}</p>
+                  <p className="mt-3 max-w-[28ch] text-sm leading-7 text-[#597083]">{category.description}</p>
                   <div className="mt-7 flex items-end justify-between">
                     <span className="font-mono text-xs tracking-[0.1em] text-[#8b6c3d]">{categoryCounts[category.id]} RECORDS</span>
                     <ArrowUpRight className="text-[#a93629] transition-transform duration-200 group-hover:-translate-y-1 group-hover:translate-x-1" size={18} />
@@ -238,7 +260,7 @@ export default function Home() {
               <p className="eyebrow">02 / FOUR MILESTONES</p>
               <h2 className="display-heading mt-5">主な公開公報。</h2>
             </div>
-            <p className="max-w-sm text-sm leading-7 text-[#62778a]">材料試験、計測、機器管理に関する代表的な公開公報です。各カードから原典を確認できます。</p>
+              <p className="max-w-sm text-sm leading-7 text-[#62778a]">材料試験、計測、機器管理に関する代表的な公開公報です。表示題名の下に原題を併記しています。</p>
           </div>
           <div className="milestone-grid grid gap-px overflow-hidden border-y border-[#d8cbb9] bg-[#d8cbb9] lg:grid-cols-4">
             {featuredPatents.map((patent, index) => (
@@ -249,6 +271,7 @@ export default function Home() {
                 </div>
                 <p className="mt-12 font-mono text-[10px] tracking-[0.14em] text-[#677f93]">{patent.id}</p>
                 <h3 className="mt-3 font-serif text-2xl leading-snug text-[#102c45]">{patent.title}</h3>
+                <p className="mt-2 text-xs leading-5 text-[#778997]">原題：{patent.originalTitle}</p>
                 <p className="mt-4 text-sm leading-7 text-[#5f7284]">{patent.overview}</p>
                 <a className="mt-7 inline-flex items-center gap-2 text-sm font-medium text-[#a93629]" href={patentLink(patent.id)} rel="noreferrer" target="_blank">
                   公開公報を開く <ExternalLink size={14} />
@@ -282,7 +305,7 @@ export default function Home() {
               <p className="eyebrow">04 / PATENT CATALOG</p>
               <h2 className="display-heading mt-5">特許一覧。</h2>
             </div>
-            <p className="body-copy max-w-2xl">題名、公開番号、または技術分野から検索できます。解説は公開公報の内容を短く整理したものです。詳しい内容や各国の法的状態は、Google Patentsの原典でご確認ください。</p>
+            <p className="body-copy max-w-2xl">表示題名、原題、公開番号、技術カテゴリー、4項目の要約、技術用語から検索できます。解説は公開公報の記載を整理したものであり、詳しい内容や各国の法的状態はGoogle Patentsの原典でご確認ください。</p>
           </div>
 
           <div className="grid items-start gap-10 lg:grid-cols-[264px_minmax(0,1fr)] lg:gap-14">
@@ -330,7 +353,7 @@ export default function Home() {
                   aria-label="特許を検索"
                   className="catalog-search"
                   onChange={(event) => setQuery(event.target.value)}
-                  placeholder="公開番号、題名、技術用語で検索"
+                  placeholder="公開番号、表示題名、原題、技術用語で検索"
                   value={query}
                 />
                 {query && <button aria-label="検索をクリア" className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-[#7890a0] hover:text-[#a93629]" onClick={() => setQuery("")} type="button"><X size={16} /></button>}
@@ -342,7 +365,10 @@ export default function Home() {
               <div className="mt-5 divide-y divide-[#dbd1c3] border-y border-[#dbd1c3]">
                 {filteredPatents.map((patent, index) => (
                   <article className="patent-row" key={patent.id}>
-                    <div className="route-index hidden pt-1 font-mono text-xs tracking-[0.12em] text-[#9a7b50] sm:block"><span className="route-node" />{String(index + 1).padStart(2, "0")}<small>{patent.priority.slice(0, 4)}</small></div>
+                    <div className="route-index hidden pt-1 font-mono text-xs tracking-[0.12em] text-[#9a7b50] sm:block">
+                      <span className="route-node" />C{String(categoryIndexes.get(patent.category) ?? index + 1).padStart(2, "0")}
+                      <small>{patent.priority.slice(0, 4)}<br />{patent.regions.join(" · ")}</small>
+                    </div>
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                         <span className="font-mono text-[11px] tracking-[0.09em] text-[#4f6d84]">{patent.id}</span>
@@ -351,7 +377,34 @@ export default function Home() {
                         <RegionPills regions={patent.regions} />
                       </div>
                       <h3 className="mt-2 font-serif text-xl leading-snug text-[#123650] sm:text-2xl">{patent.title}</h3>
-                      <p className="mt-2 max-w-3xl text-sm leading-7 text-[#63798a]">{patent.overview}</p>
+                      <p className="mt-1 text-xs leading-6 text-[#7a8d9b]">原題：{patent.originalTitle}</p>
+                      <p className="mt-3 max-w-3xl text-sm leading-7 text-[#63798a]">{patent.overview}</p>
+                      <Accordion className="patent-summary-accordion max-w-3xl" collapsible type="single">
+                        <AccordionItem value={`summary-${patent.id}`}>
+                          <AccordionTrigger className="patent-summary-trigger">技術課題・従来技術・解決手段・請求項を見る</AccordionTrigger>
+                          <AccordionContent className="patent-summary-content">
+                            <dl>
+                              <div>
+                                <dt>技術課題</dt>
+                                <dd>{patent.technicalChallenge}</dd>
+                              </div>
+                              <div>
+                                <dt>従来技術</dt>
+                                <dd>{patent.priorArt}</dd>
+                              </div>
+                              <div>
+                                <dt>解決手段</dt>
+                                <dd>{patent.solution}</dd>
+                              </div>
+                              <div>
+                                <dt>請求項（要旨）</dt>
+                                <dd>{patent.claimSummary}</dd>
+                              </div>
+                            </dl>
+                            <p className="patent-keywords"><span>検索語</span>{patent.keywords.join(" ／ ")}</p>
+                          </AccordionContent>
+                        </AccordionItem>
+                      </Accordion>
                     </div>
                     <div className="flex shrink-0 flex-col items-start gap-3 sm:items-end">
                       <span className="inline-flex bg-[#e9e0d2] px-2.5 py-1 text-[10px] font-medium tracking-[0.08em] text-[#4e6577]">{patent.category}</span>
