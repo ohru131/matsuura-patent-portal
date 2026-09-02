@@ -182,9 +182,9 @@ export default function Patents() {
             <h1 className="font-serif text-4xl leading-[1.2] tracking-[-0.03em] sm:text-5xl lg:text-6xl">
               公開特許 53件。
             </h1>
-            <p className="mt-7 max-w-2xl text-base leading-8 text-[#d5dfe7] sm:text-lg">
+            <p className="jp-wrap mt-7 max-w-2xl text-base leading-8 text-[#d5dfe7] sm:text-lg">
               株式会社島津製作所に在籍中、材料試験機の計測・制御・遠隔管理に関する開発に携わりました。
-              その成果として公開された公報を、技術の役割ごとに10分類して掲載しています。
+              その成果は公開公報として残っており、技術の役割ごとに10分類して掲載しています。
               特許を受ける権利の帰属先は出願人である企業です。
             </p>
           </div>
@@ -192,7 +192,7 @@ export default function Patents() {
       </section>
 
       <section className="relative z-10 -mt-10 mx-4 rounded-2xl border border-[#decfae] bg-[#f7f3eb] shadow-[var(--shadow-soft-lg)] sm:mx-8 lg:mx-12">
-        <div className="grid divide-y divide-[#dfd5c5] md:grid-cols-3 md:divide-x md:divide-y-0">
+        <div className="grid grid-cols-1 divide-y divide-[#dfd5c5] md:grid-cols-3 md:divide-x md:divide-y-0">
           <div className="stat-block">
             <p className="stat-number">{patents.length}</p>
             <p className="stat-label">
@@ -227,7 +227,7 @@ export default function Patents() {
         <p className="body-copy mt-6 max-w-2xl">
           専門的な分類の前に、やさしい入口として4つの視点をご紹介します。気になる視点から読み進めてください。
         </p>
-        <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {readingGuides.map((guide) => (
             <div
               className="rounded-2xl border border-[#d8cbb9] bg-[#faf7f0] p-6 shadow-[var(--shadow-soft)]"
@@ -245,7 +245,7 @@ export default function Patents() {
       </section>
 
       <section className="section-shell editorial-section py-20 lg:py-28" id="map">
-        <div className="grid gap-14 lg:grid-cols-[0.88fr_1.3fr] lg:gap-20">
+        <div className="grid grid-cols-1 gap-14 lg:grid-cols-[0.88fr_1.3fr] lg:gap-20">
           <div>
             <p className="eyebrow">01 / INVENTION MAP</p>
             <h2 className="display-heading mt-5">技術分野から見る。</h2>
@@ -257,7 +257,7 @@ export default function Patents() {
               特許一覧を見る <ArrowUpRight size={16} />
             </a>
           </div>
-          <div className="invention-map-grid relative grid gap-px overflow-hidden rounded-2xl border border-[#d7cab8] bg-[#d7cab8] sm:grid-cols-2">
+          <div className="invention-map-grid relative grid grid-cols-1 gap-px overflow-hidden rounded-2xl border border-[#d7cab8] bg-[#d7cab8] sm:grid-cols-2">
             {patentCategories.map((category, index) => (
               <button
                 className="group relative min-h-60 bg-[#fbf8f2] p-7 text-left transition-colors hover:bg-[#f0e9dd]"
@@ -320,7 +320,7 @@ export default function Patents() {
       </section>
 
       <section className="section-shell editorial-section py-20 lg:py-28" id="catalog">
-        <div className="mb-12 grid gap-8 border-b border-[#d8cbbb] pb-9 lg:grid-cols-[0.7fr_1.3fr] lg:items-end">
+        <div className="mb-12 grid grid-cols-1 gap-8 border-b border-[#d8cbbb] pb-9 lg:grid-cols-[0.7fr_1.3fr] lg:items-end">
           <div>
             <p className="eyebrow">03 / PATENT CATALOG</p>
             <h2 className="display-heading mt-5">特許一覧。</h2>
@@ -331,7 +331,7 @@ export default function Patents() {
           </p>
         </div>
 
-        <div className="grid items-start gap-10 lg:grid-cols-[272px_minmax(0,1fr)] lg:gap-14">
+        <div className="grid grid-cols-1 items-start gap-10 lg:grid-cols-[272px_minmax(0,1fr)] lg:gap-14">
           <aside className="lg:sticky lg:top-24">
             <div className="rounded-2xl border border-[#cabba8] bg-[#faf7f0] p-5 shadow-[var(--shadow-soft)]">
               <div className="flex items-center gap-2 text-xs font-medium tracking-[0.12em] text-[#6b5a43]">
@@ -503,7 +503,7 @@ export default function Patents() {
       </section>
 
       <section className="section-shell editorial-section py-20 lg:py-24" id="method">
-        <div className="grid gap-10 lg:grid-cols-[0.9fr_1.1fr]">
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-[0.9fr_1.1fr]">
           <div>
             <p className="eyebrow">04 / RESEARCH NOTE</p>
             <h2 className="display-heading mt-5">

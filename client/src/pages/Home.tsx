@@ -64,10 +64,42 @@ const expertiseCards = [
   },
 ];
 
+/**
+ * ヒーローのリード文。日本語は文字単位でどこでも折り返せてしまうため、
+ * 語の途中（例:「業務改／善」）で改行されるのを防ぐ目的で、意味のまとまりごとに
+ * whitespace-nowrap の区切りを入れて描画する。連結すると元の文章と完全に一致する。
+ */
+const heroLeadPhrases = [
+  "松浦融です。",
+  "材料試験機の計測と制御に長く携わり、",
+  "2003年から2024年にかけて",
+  "公開された50件を超える発明に、",
+  "発明者として名前が記載されています。",
+  "いまは、",
+  "ベビーシッター事業を運営する法人の",
+  "業務改善（DX）に取り組んでいます。",
+];
+
 const featuredIds = ["JP2024138552A", "JP2022184622A", "JP2023013482A", "JP2019132768A"];
 const featuredPatents = featuredIds
   .map((id) => patents.find((patent) => patent.id === id))
   .filter((patent): patent is (typeof patents)[number] => Boolean(patent));
+
+/**
+ * 代表4件は、一般の読者向けに要点だけをやさしい言葉で書き直したもの。
+ * patents.ts の overview / technicalChallenge は公報の言い回しをそのまま整理した文章のため、
+ * トップページでは使わず、ここで1〜2文の平易な説明を用意する（内容は公報の記載から外れないこと）。
+ */
+const featuredSummaries: Record<string, string> = {
+  JP2024138552A:
+    "複数の試験機の進み具合を、現場に行かなくても一覧でまとめて確認できるようにする発明です。",
+  JP2022184622A:
+    "カメラの映像から人の存在を検知し、危険なときに機械の動きを自動で止める発明です。",
+  JP2023013482A:
+    "試験機がいまどんな状態にあるかを、現地に行かなくても遠くから把握できるようにする発明です。",
+  JP2019132768A:
+    "試験中に生じる機械自体の細かな揺れ（ノイズ）を取り除き、測定データの精度を高める発明です。",
+};
 
 const journey = [
   {
@@ -127,19 +159,23 @@ export default function Home() {
           <div className="absolute -left-10 bottom-0 h-56 w-56 rounded-full border border-white/10" />
         </div>
         <div className="section-shell relative py-20 lg:py-28">
-          <div className="max-w-3xl">
+          <div className="max-w-4xl">
             <p className="mb-4 font-mono text-[11px] tracking-[0.16em] text-[#b2c4d5]">
               PORTFOLIO / 松浦融
             </p>
-            <h1 className="max-w-[15ch] font-serif text-4xl leading-[1.28] tracking-[-0.03em] sm:text-5xl lg:text-6xl">
+            <h1 className="jp-wrap font-serif text-3xl leading-[1.4] tracking-[-0.02em] sm:text-5xl sm:leading-[1.3] lg:text-6xl lg:leading-[1.3] lg:tracking-[-0.03em]">
               現実を測る技術から、
               <br />
-              現場の負担を減らす仕組みへ。
+              現場の負担を
+              <br className="sm:hidden" />
+              減らす仕組みへ。
             </h1>
-            <p className="mt-8 max-w-2xl text-base leading-8 text-[#d5dfe7] sm:text-lg">
-              松浦融です。材料試験機の計測と制御に長く携わり、2003年から2024年にかけて公開された
-              50件を超える発明に、発明者として名前が記載されています。
-              いまは、ベビーシッター事業を運営する法人の業務改善（DX）に取り組んでいます。
+            <p className="jp-wrap mt-8 max-w-2xl text-base leading-8 text-[#d5dfe7] sm:text-lg">
+              {heroLeadPhrases.map((phrase) => (
+                <span className="whitespace-nowrap" key={phrase}>
+                  {phrase}
+                </span>
+              ))}
             </p>
             <div className="mt-10 flex flex-wrap gap-4">
               <a className="primary-action" href="#work">
@@ -155,7 +191,7 @@ export default function Home() {
 
       {/* いまの取り組み */}
       <section className="section-shell editorial-section py-20 lg:py-28" id="work">
-        <div className="grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:gap-16">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:gap-16">
           <div>
             <p className="eyebrow">01 / NOW</p>
             <h2 className="display-heading mt-5">いま取り組んでいること。</h2>
@@ -173,7 +209,7 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-14 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {dxCards.map((card) => (
             <div
               className="rounded-2xl border border-line bg-cream-card p-6 shadow-[var(--shadow-soft)] transition-shadow duration-150 hover:shadow-[var(--shadow-soft-lg)]"
@@ -201,7 +237,7 @@ export default function Home() {
             その成果は公開特許として残っています（特許を受ける権利は、出願人である企業に帰属します）。
           </p>
 
-          <div className="mt-10 grid divide-y divide-[#cbb99a] rounded-2xl border border-[#cbb99a] bg-[#f7f3eb] shadow-[var(--shadow-soft)] sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+          <div className="mt-10 grid grid-cols-1 divide-y divide-[#cbb99a] rounded-2xl border border-[#cbb99a] bg-[#f7f3eb] shadow-[var(--shadow-soft)] sm:grid-cols-3 sm:divide-x sm:divide-y-0">
             <div className="stat-block">
               <p className="stat-number">{patents.length}</p>
               <p className="stat-label">
@@ -228,7 +264,7 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {featuredPatents.map((patent) => (
               <article
                 className="flex min-h-[15rem] flex-col rounded-2xl border border-line bg-cream-card p-6 shadow-[var(--shadow-soft)]"
@@ -239,14 +275,16 @@ export default function Home() {
                   <RegionPills regions={patent.regions} />
                 </div>
                 <h3 className="mt-4 font-serif text-lg leading-snug text-[#102c45]">{patent.title}</h3>
-                <p className="mt-3 flex-1 text-sm leading-6 text-[#5f7284]">{patent.overview}</p>
+                <p className="jp-wrap mt-3 flex-1 text-sm leading-6 text-[#5f7284]">
+                  {featuredSummaries[patent.id] ?? patent.overview}
+                </p>
                 <a
                   className="mt-5 inline-flex min-h-9 items-center gap-1.5 text-xs font-medium text-vermillion-strong"
                   href={patentLink(patent.id)}
                   rel="noreferrer"
                   target="_blank"
                 >
-                  原典を開く <ExternalLink size={13} />
+                  Google Patentsで見る <ExternalLink size={13} />
                 </a>
               </article>
             ))}
@@ -262,7 +300,7 @@ export default function Home() {
       <section className="section-shell editorial-section py-20 lg:py-28">
         <p className="eyebrow">03 / SKILLS</p>
         <h2 className="display-heading mt-5">できること。</h2>
-        <div className="mt-12 grid gap-5 lg:grid-cols-3">
+        <div className="mt-12 grid grid-cols-1 gap-5 lg:grid-cols-3">
           {expertiseCards.map((card) => (
             <div
               className="rounded-2xl border border-line bg-cream-card p-7 shadow-[var(--shadow-soft)]"
@@ -277,24 +315,34 @@ export default function Home() {
       </section>
 
       {/* 歩み */}
-      <section className="bg-[#0a2741] py-20 text-white lg:py-24" id="journey">
+      <section className="relative overflow-hidden bg-[#0a2741] py-20 text-white lg:py-24" id="journey">
         <div className="section-shell">
           <p className="eyebrow text-[#e8cb83]">04 / JOURNEY</p>
           <h2 className="mt-5 font-serif text-3xl leading-tight tracking-[-0.02em] sm:text-4xl">歩み。</h2>
-          <ol className="relative mt-14 max-w-2xl">
-            <div aria-hidden="true" className="absolute bottom-2 left-[7px] top-2 w-px bg-[repeating-linear-gradient(to_bottom,#e4c679_0_5px,transparent_5px_13px)] opacity-70" />
-            {journey.map((item) => (
-              <li className="relative pb-12 pl-9 last:pb-0" key={item.title}>
-                <span
-                  aria-hidden="true"
-                  className="absolute left-0 top-1.5 h-[15px] w-[15px] rounded-full border border-[#e4c679] bg-[#0a2741] shadow-[0_0_0_4px_#0a2741]"
-                />
-                <p className="font-mono text-xs tracking-[0.12em] text-[#e4c679]">{item.when}</p>
-                <p className="mt-2 font-serif text-xl leading-snug text-white">{item.title}</p>
-                <p className="mt-2 max-w-xl text-[15px] leading-7 text-[#c3d1de]">{item.body}</p>
-              </li>
-            ))}
-          </ol>
+          <div className="mt-14 grid grid-cols-1 gap-12 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16">
+            <ol className="relative min-w-0 max-w-2xl">
+              <div aria-hidden="true" className="absolute bottom-2 left-[7px] top-2 w-px bg-[repeating-linear-gradient(to_bottom,#e4c679_0_5px,transparent_5px_13px)] opacity-70" />
+              {journey.map((item) => (
+                <li className="relative pb-12 pl-9 last:pb-0" key={item.title}>
+                  <span
+                    aria-hidden="true"
+                    className="absolute left-0 top-1.5 h-[15px] w-[15px] rounded-full border border-[#e4c679] bg-[#0a2741] shadow-[0_0_0_4px_#0a2741]"
+                  />
+                  <p className="font-mono text-xs tracking-[0.12em] text-[#e4c679]">{item.when}</p>
+                  <p className="jp-wrap mt-2 font-serif text-xl leading-snug text-white">{item.title}</p>
+                  <p className="jp-wrap mt-2 max-w-xl text-[15px] leading-7 text-[#c3d1de]">{item.body}</p>
+                </li>
+              ))}
+            </ol>
+            {/* デスクトップの右半分を占める装飾（測定リング＋航路線）。情報を持たないため aria-hidden。 */}
+            <div aria-hidden="true" className="relative hidden min-h-[26rem] lg:block">
+              <div className="absolute right-4 top-6 h-72 w-72 rounded-full border border-[#e4c679]/25" />
+              <div className="absolute right-24 top-28 h-44 w-44 rounded-full border border-[#e4c679]/30" />
+              <div className="absolute right-40 top-1/2 h-24 w-24 -translate-y-1/2 rounded-full border border-white/10" />
+              <div className="absolute right-10 top-1/2 h-px w-56 -translate-y-1/2 bg-gradient-to-r from-transparent via-[#e4c679]/50 to-transparent" />
+              <div className="optical-route" />
+            </div>
+          </div>
         </div>
       </section>
 
@@ -302,7 +350,7 @@ export default function Home() {
       <section className="section-shell editorial-section py-20 lg:py-28">
         <p className="eyebrow">05 / WHAT'S NEXT</p>
         <h2 className="display-heading mt-5">これから。</h2>
-        <div className="mt-10 grid gap-8 lg:grid-cols-2">
+        <div className="mt-10 grid grid-cols-1 gap-8 lg:grid-cols-2">
           <div className="rounded-2xl border border-line bg-cream-card p-7 shadow-[var(--shadow-soft)]">
             <p className="font-serif text-xl text-[#123650]">フィジカルAI</p>
             <p className="mt-4 text-[15px] leading-7 text-[#5f7284]">
