@@ -1,71 +1,79 @@
 # 追加調査メモ: assignee=Materials Science（松浦融氏本人申告分）
 
-調査日: 2026-09-03
+調査日: 2026-09-03（前回セッション: 同日、上流セッションが公開番号を特定）
 
 ## 依頼内容
 
-オーナー（松浦融氏本人）から、以下の検索式で表示される「Materials Science」系の出願人による公開特許（想定2件）も本人の発明であるとの申告があった。
+オーナー（松浦融氏本人）から、以下の検索式で表示される「Materials Science」系の出願人による公開特許（2件）も本人の発明であるとの申告があった。
 
-- 追加分: `https://patents.google.com/?inventor=Matsuura+Toru&assignee=Materials+Science&num=100`
-- 統合後の想定: `https://patents.google.com/?inventor=Matsuura+Toru&assignee=shimadzu,Materials+Science`
+- `https://patents.google.com/?inventor=Matsuura+Toru&assignee=Materials+Science&num=100`
+- 統合後: `https://patents.google.com/?inventor=Matsuura+Toru&assignee=shimadzu,Materials+Science`
 
-## 調査結果: 一次情報を確認できず（未追加）
+前回セッション（本ファイルの旧版）では、`patents.google.com` を含む特許データベース全般への直接アクセス（curl / WebFetch）が環境のegressポリシーで一律ブロックされているため、公開番号を含む一次情報に到達できなかった。今回は上流セッション（親エージェント）が別ルートで2件の公開番号を特定した上で本タスクに着手しており、本セッションでは**WebSearchツールのみ**（検索結果のスニペット・要約に限定、ページ本文の直接取得は不可）を用いて追加確認を行った。
 
-**結論として、今回のセッションでは上記2件の特許を一次資料（Google Patents本体や他の特許データベース）から確認することができなかった。** そのため `client/src/data/patents.ts` への追加は行っていない（既存53件は無変更）。理由と試行過程を以下に記録する。
+## 前提として与えられた情報（親が調査済み、本セッションでは再調査していない）
 
-### 1. ネットワーク到達性の制約
+- JP2013088262A: 原題「極低温超音波疲労非破壊試験評価装置及び解析・評価方法」、出願人 国立研究開発法人物質・材料研究機構（NIMS）、出願日（優先日）2011-10-17、公開年2013、要旨（液体窒素温度77Kでの高サイクル疲労試験におけるき裂発生寿命・損傷進展メカニズムの非破壊評価）
+- JP2013140185A: 英題「Cryogenic temperature ultrasonic fatigue nondestructive test evaluation apparatus」、出願人同上、出願日2013-04-19、公開日2013-07-18、JP2013088262Aとの分割出願の可能性（未確認）
 
-本セッションの実行環境では、`scripts/fetch_patent_details.py` が想定する `patents.google.com` への直接アクセス（curl / WebFetch）が、環境のegressポリシーにより一律にブロックされていることを確認した。
+## 本セッションでのWebSearch調査（実施クエリと結果）
 
-```
-$ curl -sS -A "Mozilla/5.0 ..." "https://patents.google.com/patent/JP2019132766A/ja"
-curl: (56) CONNECT tunnel failed, response 403
-```
+ネットワークの直接アクセスができないため、`WebSearch` ツール（検索エンジンの結果一覧＋AIによる要約）のみで裏付けを試みた。以下、実施した9件のクエリと得られた情報。
 
-`curl -sS "$HTTPS_PROXY/__agentproxy/status"` で確認したところ、`recentRelayFailures` に
+1. `JP2013088262A 極低温超音波疲労非破壊試験評価装置`
+   → Google Patentsの当該ページがヒット。原題・要旨（77K高サイクル疲労、非破壊評価、き裂発生寿命・進展メカニズムの評価）を再確認。公開日 2013-05-13 という情報も得られた。
+2. `特開2013-088262 物質・材料研究機構 超音波疲労 課題`
+   → 当該公報自体はヒットせず、周辺の超音波疲労試験関連の一般文献のみ。課題・従来技術の直接的な裏付けは得られず。
+3. `JP2013088262A claim 1 レーザードップラー振動計 液体窒素 クライオスタット`
+   → 装置構成（クライオスタット、液体窒素、超音波ホーン、液体窒素の液面制御、レーザーによる振動検出）に関する要約が得られた。ただしこれはWebSearchツールの検索結果要約（AI合成）であり、公報原文の引用ではない点に留意。
+4. `JP2013140185A cryogenic ultrasonic fatigue nondestructive test evaluation apparatus`
+   → JP2013140185Aの英語ページタイトルを確認。「Cryogenic temperature ultrasonic fatigue nondestructive test evaluation apparatus」。
+5. `JP2013140185A 分割出願 極低温超音波疲労非破壊試験評価装置 原出願`
+   → JP2013088262Aとの関連が示唆される検索結果は得られたが、分割出願である旨を明記した一次情報は見つからず。
+6. `JP2013088262A inventor Matsuura Toru 発明者`
+   → 発明者候補として Toru Matsuura（松浦融）、Mitsuharu Shiwa、Hisashi Yamawaki、Toshio Ogata、Hideki Kobayashi、Yoshiaki Suzuki の名が検索結果の要約に現れた。出願日2011-10-17、公開日2013-05-13、出願人 National Institute for Materials Science という情報も確認できた（前提情報と整合）。
+7. `"JP2013140185" 極低温超音波疲労非破壊試験評価装置 日本語 原題`
+   → 検索結果の要約は「極低温超音波疲労非破壊試験評価装置」という日本語表記を提示したが、これはAIによる英題からの逆翻訳の可能性が高く、実際の公報原文を引用したものではない。**信頼性が低いため、本サイトのデータには採用しなかった**（後述）。
+8. `JP2013140185A inventor assignee 出願人 物質・材料研究機構`
+   → 直接の裏付けは得られず（無関係な検索結果のみ）。
+9. `"JP2013140185" Matsuura Shiwa Yamawaki 発明者`
+   → 発明者候補として Mitsuharu Shiwa、Hisashi Yamawaki、Toshio Ogata、Toru Matsuura の名が要約に現れた。
+10. `JP2013140185A priority date 2013-04-19 filing`
+    → 出願日2013-04-19、公開日2013-07-18が確認できた（前提情報と整合）。
+11. `JP2013140185A "分割" OR divisional 2011-10-17 priority`
+    → 検索結果の要約は「JP2013140185Aの優先日は2013-04-19であり、2011-10-17ではない」という趣旨の回答。すなわち、**JP2013140185A自身の優先日が2011-10-17であるという確証は得られなかった**。
 
-```
-{"kind": "connect_rejected", "detail": "gateway answered 403 to CONNECT (policy denial or upstream failure)", "host": "patents.google.com:443"}
-```
+## 確認できたと判断した情報・できなかった情報
 
-が記録されており、`/root/.ccr/README.md` の分類に従えば「組織ポリシーによる拒否（403）」であり、再試行や回避（TLS検証の無効化、HTTPS_PROXYの解除）を行うべきものではない。
+### JP2013088262A
+- 原題・出願人・出願日（2011-10-17）・公開年（2013）: 前提情報どおりで、WebSearchでも矛盾なく再確認できた。
+- 発明者候補（Matsuura Toru を含む複数名）: WebSearchの検索結果要約で確認できた（ただし一次資料の直接引用ではなく検索エンジン側の要約経由）。
+- 装置構成の概要（クライオスタットに超音波ホーンと試験片を浸す、液体窒素液面を制御してミストがレーザー光路に入らないようにする、レーザーで試験片端部の振動を検出、非線形超音波解析とAE解析を併用）: WebSearchの検索結果要約から得られた。**公報原文を直接読んだ確認ではない**ため、サイト上の解決手段欄には「WebSearchで確認できた範囲」であることを明記し、原典参照を促す注記を添えた。
+- 技術課題（従来技術の問題点）・請求項の具体的な記載: 確認できず。サイト上では「未確認」である旨を正直に記載した。
 
-念のため、他の特許関連ドメイン（`patents.justia.com`、`www.patentguru.com`、`j-platpat.inpit.go.jp`、`worldwide.espacenet.com`、`www.freepatentsonline.com`、`image-ppubs.uspto.gov`、`www.lens.org`、`samurai.nims.go.jp`、`jglobal.jst.go.jp`）についても同様に`curl`で疎通確認したが、すべて同じ `connect_rejected` (403) で拒否された。また `WebFetch` ツールでも `patents.google.com`、`en.wikipedia.org`、`example.com` 等が `EGRESS_BLOCKED` として拒否されることを確認した（`example.com` すら拒否されたことから、これは特定サイトの個別ブロックではなく、本セッションの一般的なWebブラウジングに対するポリシー制限と判断した）。一方で `raw.githubusercontent.com`、`api.github.com`、`pypi.org` 等の開発ツール系ドメインへの疎通は正常であり、egress許可リストが開発系サービスに限定されていることを確認した。
+### JP2013140185A
+- 出願人（NIMS）・出願日（2013-04-19）・公開日（2013-07-18）: WebSearchで再確認できた。
+- 英題「Cryogenic temperature ultrasonic fatigue nondestructive test evaluation apparatus」: Google Patentsページのタイトルとして検索結果に明示的に現れており、確認できたと判断。
+- 日本語の原題: **確認できなかった**。検索結果の要約は日本語表記の候補を提示したが、これは英題からの機械的な逆翻訳とみられ、公報原文の引用ではないため採用しなかった。サイト上の `originalTitle` には確認できた英題をそのまま使用し、日本語原題は未確認である旨を明記した。
+- JP2013088262Aとの関係（分割出願かどうか）・優先日が2011-10-17に遡及するか: **確認できなかった**。むしろクエリ11の結果は「JP2013140185A自身の優先日は2013-04-19」という趣旨であり、2011-10-17への遡及を裏付けるものではなかった。このため、サイト上の `priority` フィールドには確認できた出願日 **2013-04-19** をそのまま採用した（親の指示どおり）。
+- 装置構成・課題・従来技術・請求項の具体的内容: 確認できず。WebSearchの一部クエリではJP2013088262Aとほぼ同一の装置構成説明が返ってきたが、これはJP2013088262Aの内容を使い回している可能性が高く、JP2013140185A固有の内容として独立に裏付けられたものではないと判断し、**サイトのデータには反映しなかった**（`solution` 欄は「未確認」の正直な文にとどめた）。
 
-この制約下では、既存の `scripts/fetch_patent_details.py` のような個別公報ページの直接取得も、Google PatentsのXHRエンドポイントの直接取得も実行できない。
+## サイトへの反映方針
 
-### 2. WebSearchツールによる代替調査
+- `client/src/data/patents.ts` に2件を追加（既存53件は無変更）。分類は両方とも「超音波技術」とした（超音波ホーンで試験片に振動を与える疲労試験という技術内容が、既存カテゴリ定義「超音波を使った疲労試験、ホーン、試験片保持に関する技術。」に直接合致するため）。
+- 表示題名は原題の直写しを避け、かつ2件の区別がつくよう、JP2013088262A（装置＋解析・評価方法）は「き裂発生を非破壊で評価」する側面を、JP2013140185A（装置のみ）は「試験装置」である側面をそれぞれ強調した。
+- `priorArt` と `claimSummary` は両件とも未確認のため、「本サイトでは未整理です。公報の原典でご確認ください。」という正直な代替文とした。
+- `technicalChallenge` と `solution` も、確認できた範囲（JP2013088262Aのみ、WebSearch経由）とそれ以外（未確認）を明確に書き分けた。
 
-直接フェッチができないため、`WebSearch` ツール（検索エンジンのスニペットに基づく間接的な調査）で代替調査を試みた。試行したクエリと結果の要旨は以下の通り。
+## 参照
 
-| 試行内容 | クエリ例 | 結果 |
-| --- | --- | --- |
-| 英字名 + Materials Science の直接組み合わせ | `"Matsuura Toru" "Materials Science" patent inventor` | 該当なし。無関係な同姓同名（Masashi Matsuura、Makoto Matsuura等）のみ |
-| 別表記 "Tohru Matsuura" | `"Tohru Matsuura" "Materials Science" patent` | 該当なし |
-| site:patents.google.com での絞り込み | `site:patents.google.com "Matsuura" "Materials Science"` 等 | Google Patentsの検索結果ページ・個別公報ページとも索引されず、無関係なサイトのみ返る |
-| 出願人候補: 物質・材料研究機構（NIMS, 英名 National Institute for Materials Science） | `"物質・材料研究機構" "島津製作所" 発明者 松浦 融 特許 公開` 等、複数バリエーション | NIMSと島津製作所それぞれの一般情報は見つかったが、両者と松浦融氏を結びつける一次情報は見つからず |
-| 出願人候補: 北陸/奈良先端科学技術大学院大学（JAIST/NAIST、学域に"Materials Science"を含む） | `松浦融 島津製作所 奈良先端科学技術大学院大学 特許` | 該当なし |
-| 出願人候補: 国内の「マテリアルサイエンス株式会社」 | `"マテリアルサイエンス株式会社" 松浦 特許` | 実在の企業（東京都新宿区、UV関連製品・塗装・フラーレン等を扱う商社）がヒットしたが、材料試験・計測・制御という松浦融氏の技術領域と整合せず、除外 |
-| Justia / uspto.report 等のミラー | `"patents.justia.com/inventor/toru-matsuura"`、`uspto.report "Matsuura" inventor "Materials Science"` 等 | 該当ページ自体が検索結果に現れず、確認不能 |
-| J-GLOBAL経由 | `jglobal.jst.go.jp 松浦融 特許` | 松浦融氏に関する該当情報なし |
+- [JP2013088262A - Google Patents](https://patents.google.com/patent/JP2013088262A/ja)（本セッションから直接アクセスは不可。WebSearchのスニペット・要約経由でのみ確認）
+- [JP2013140185A - Google Patents](https://patents.google.com/patent/JP2013140185A/en)（同上）
+- [Google Patents: inventor:Matsuura Toru, assignee:shimadzu,Materials Science](https://patents.google.com/?inventor=Matsuura+Toru&assignee=shimadzu,Materials+Science)
 
-上記に加え、`ipforce.jp`（島津製作所の公開特許一覧を掲載する民間IP情報サイト）についても `site:ipforce.jp 松浦融` で検索したが、無関係な特許・企業（株式会社松浦機械製作所、株式会社松浦紙器製作所等）がノイズとしてヒットするのみで、松浦融氏本人および「Materials Science」系出願人との関連は確認できなかった。
+## 残課題（今後、ネットワーク到達性が確保された場合に行うべきこと）
 
-### 3. 到達した判断
-
-- 出願人名の正式名称（日本語・英語）は特定できなかった。「National Institute for Materials Science（国立研究開発法人物質・材料研究機構）」を含む複数の候補を検討したが、いずれも松浦融氏・島津製作所との関連を裏付ける一次情報には到達できなかった。
-- 該当2件の公開番号、題名、優先日、請求項等の内容も一切確認できていない。
-- したがって、**推測に基づく創作を避けるため、`client/src/data/patents.ts` への追加は行っていない。**
-
-### 4. 今後の確認方法（提案）
-
-本セッションの環境制約が解消され次第、以下のいずれかで再調査可能:
-
-1. `https://patents.google.com/?inventor=Matsuura+Toru&assignee=Materials+Science&num=100` にGoogle Patentsへの疎通があるセッションから直接アクセスし、表示される公開番号を確認する。
-2. オーナー（松浦融氏）に該当2件の公開番号（JP特許番号等）を直接確認いただき、`https://patents.google.com/patent/<公開番号>/ja` から本文・請求項を取得する（このページ形式は `scripts/fetch_patent_details.py` の既存ロジックでそのまま取得可能）。
-3. J-PlatPat（特許情報プラットフォーム）で発明者名「松浦融」または「松浦　融」で検索し、出願人が島津製作所以外のものを確認する。
-
-## 参照（アクセス不能を確認した一次情報源候補）
-
-- [Google Patents: inventor:Matsuura Toru, assignee:Materials Science](https://patents.google.com/?inventor=Matsuura+Toru&assignee=Materials+Science&num=100) — 本セッションからは接続不可（403 policy denial）
-- [Google Patents: inventor:Matsuura Toru, assignee:shimadzu,Materials Science](https://patents.google.com/?inventor=Matsuura+Toru&assignee=shimadzu,Materials+Science) — 同上
+1. 上記2件の公報原文（特に「技術課題」「従来技術」「請求項」）を直接取得し、`priorArt` / `claimSummary` / `technicalChallenge` を既存53件と同水準の記述に更新する。
+2. JP2013140185Aの日本語原題を、J-PlatPat等の一次情報で確認する。
+3. JP2013140185AがJP2013088262Aの分割出願であるか、優先日が2011-10-17に遡及するかを確認し、該当する場合は `priority` フィールドを更新する（サイトは優先日順に並ぶため表示順に影響する）。
+4. 両件について、US/EP/WO等の同族出願の有無を確認し、該当があれば `regions` を更新する。

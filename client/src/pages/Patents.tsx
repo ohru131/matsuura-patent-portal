@@ -513,8 +513,9 @@ export default function Patents() {
               <BookOpen size={18} />
               <p>
                 Google Patentsで、発明者を <span className="font-mono text-[13px]">Toru Matsuura</span>、出願人を{" "}
-                <span className="font-mono text-[13px]">Shimadzu</span> および{" "}
-                <span className="font-mono text-[13px]">Materials Science</span> として検索し、表示された
+                <span className="font-mono text-[13px]">Shimadzu</span>（株式会社島津製作所）および{" "}
+                <span className="font-mono text-[13px]">Materials Science</span>
+                （国立研究開発法人物質・材料研究機構）として検索し、表示された
                 {patents.length}件を編集しています。
               </p>
             </div>
