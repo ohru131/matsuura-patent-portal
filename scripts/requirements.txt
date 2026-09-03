@@ -1,0 +1,11 @@
+# Pinned dependencies for scripts/*.py.
+#
+# check_new_patents.py and gpatents.py need only `requests`.
+# fetch_patent_details.py additionally needs `beautifulsoup4` to parse patent
+# detail pages.
+# summarize_patent_details.py and review_patent_summaries.py additionally
+# need `openai` (they call an LLM and require an OPENAI_API_KEY; they are not
+# used by the automated new-patent-detection workflow).
+requests==2.32.3
+beautifulsoup4==4.12.3
+openai==1.54.4

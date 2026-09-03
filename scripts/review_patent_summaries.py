@@ -1,7 +1,20 @@
 """Re-edit patent summaries with an explicit source-grounding pass.
 
 The catalog's Japanese title is used as the original title. The Google Patents
-description and independent claim are the only sources for the editorial fields.
+description and independent claim are the only sources for the editorial
+fields. Requires OPENAI_API_KEY; this is an editorial-review aid for a human,
+not something the automated new-patent-detection workflow runs.
+
+2026-09 review note, two bugs fixed:
+  - catalog_titles() used a regex anchored on a single-line
+    `{ id: "...", title: "..." }` object-literal format. The catalog is now
+    (and, per git history, was already) formatted as one field per line, so
+    that regex matched zero records. It has been rewritten to match `id:` and
+    `title:` independently of surrounding whitespace/newlines.
+  - both count checks were hardcoded to "53", left over from when the catalog
+    only covered the assignee=Shimadzu search. They now compare the two
+    inputs to each other instead of to a fixed number, since the catalog size
+    is expected to grow over time.
 """
 
 from __future__ import annotations
@@ -75,9 +88,18 @@ keywordsには検索用の具体語を4〜8語返します。指定の10分類�
 
 def catalog_titles() -> dict[str, str]:
     text = CATALOG.read_text(encoding="utf-8")
-    pairs = re.findall(r'\{ id: "(JP[0-9A-Z]+)", title: "([^"]+)"', text)
-    if len(pairs) != 53:
-        raise RuntimeError(f"Could not parse 53 catalog titles: {len(pairs)}")
+    # One `{ ... }` record spans multiple lines with one field per line, e.g.:
+    #   {
+    #     id: "JP2019132766A",
+    #     title: "固有振動を考慮した試験結果評価",
+    #     ...
+    #   },
+    # so id: and title: are matched independently (in DOTALL mode, non-greedily
+    # up to the next record boundary) rather than assuming they sit on one line.
+    pattern = re.compile(r'id:\s*"(JP[0-9A-Z]+)".*?title:\s*"([^"]+)"', re.DOTALL)
+    pairs = pattern.findall(text)
+    if not pairs:
+        raise RuntimeError("Could not parse any catalog id/title pairs; the catalog format may have changed")
     return dict(pairs)
 
 
@@ -130,8 +152,11 @@ def one(record: dict, titles: dict[str, str]) -> dict:
 def main() -> None:
     records = json.loads(RAW.read_text(encoding="utf-8"))
     titles = catalog_titles()
-    if len(records) != 53 or set(item["id"] for item in records) != set(titles):
-        raise RuntimeError("The source records and catalog must both contain the same 53 IDs")
+    if not records or {item["id"] for item in records} != set(titles):
+        raise RuntimeError(
+            f"The source records ({len(records)} ids) and catalog ({len(titles)} ids) "
+            "must be non-empty and contain exactly the same set of IDs"
+        )
 
     results: list[dict] = []
     with futures.ThreadPoolExecutor(max_workers=MAX_WORKERS) as pool:
