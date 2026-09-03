@@ -1,4 +1,34 @@
-"""Build the TypeScript catalog from source-grounded editorial summaries."""
+"""Build the TypeScript catalog from source-grounded editorial summaries.
+
+This was the one-time script used to construct client/src/data/patents.ts
+from research/patent_editorial_summaries.json plus a set of hand-picked
+CATEGORY_OVERRIDES / TITLE_OVERRIDES / TEXT_OVERRIDES for the original 53
+publication numbers (the assignee=Shimadzu search). It writes to
+client/src/data/patents.next.ts, never to patents.ts itself, so it is safe to
+re-run without clobbering hand-edited catalog entries; a human must still
+diff and merge patents.next.ts by hand.
+
+2026-09 review note: two things were fixed so this keeps working as the
+catalog grows past the original 53 records (e.g. the assignee=Materials
+Science additions, and anything check_new_patents.py finds later):
+  - parse_original_records() used a regex anchored on a single-line
+    `{ id: "...", title: "...", priority: "...", published: "...",
+    regions: [...] }` object-literal format. The catalog is formatted one
+    field per line, so that regex matched zero records; it now matches each
+    field independently of whitespace/newlines.
+  - the "exactly 53 records" check is gone. Instead, main() now requires
+    every parsed catalog ID to have an entry in CATEGORY_OVERRIDES (the one
+    dict every record must have, since PatentRecord.category is required) and
+    fails with a clear, actionable list of which IDs are missing overrides,
+    rather than a bare KeyError. TITLE_OVERRIDES/TEXT_OVERRIDES remain
+    optional per-ID overrides layered on top of the LLM draft in
+    patent_editorial_summaries.json, same as before.
+
+This script does NOT decide which publication numbers are new - that is
+check_new_patents.py's job - and it still requires a human to add
+CATEGORY_OVERRIDES (and usually TITLE_OVERRIDES/TEXT_OVERRIDES) entries for
+any newly added ID before running it again.
+"""
 
 from __future__ import annotations
 
@@ -175,16 +205,37 @@ TEXT_OVERRIDES = {
 
 
 def parse_original_records(text: str) -> list[dict]:
+    # One `{ ... }` record spans multiple lines with one field per line (see
+    # the "id: ..." / "title: ..." example in the module docstring), so each
+    # field is matched independently rather than assuming a single-line
+    # object literal. re.DOTALL lets ".*?" cross newlines; the fields are
+    # matched in the order they appear in PatentRecord (id, title,
+    # originalTitle, priority, published, ..., regions), so the non-greedy
+    # match stops at the correct occurrence.
+    #
+    # NOTE: `originalTitle` (not the display `title`) is captured here and is
+    # what main() writes back out as `originalTitle` below. The catalog is
+    # already in the enriched PatentRecord shape (title = display name,
+    # originalTitle = the real patent title), so re-deriving originalTitle
+    # from the display `title` field would silently duplicate it. `title`
+    # itself is only captured for readability/debugging; main() always
+    # recomputes the display title from TITLE_OVERRIDES / plain_title.
     pattern = re.compile(
-        r'\{ id: "(?P<id>JP[0-9A-Z]+)", title: "(?P<title>[^"]+)", priority: "(?P<priority>[^"]+)", published: "(?P<published>[^"]+)", regions: \[(?P<regions>[^\]]*)\]',
+        r'id:\s*"(?P<id>JP[0-9A-Z]+)".*?'
+        r'title:\s*"(?P<title>[^"]+)".*?'
+        r'originalTitle:\s*"(?P<originalTitle>[^"]+)".*?'
+        r'priority:\s*"(?P<priority>[^"]+)".*?'
+        r'published:\s*"(?P<published>[^"]+)".*?'
+        r'regions:\s*\[(?P<regions>[^\]]*)\]',
+        re.DOTALL,
     )
     result = []
     for match in pattern.finditer(text):
         data = match.groupdict()
         data["regions"] = re.findall(r'"([A-Z]+)"', data["regions"])
         result.append(data)
-    if len(result) != 53:
-        raise RuntimeError(f"Expected 53 original records, got {len(result)}")
+    if not result:
+        raise RuntimeError("Could not parse any catalog records; the catalog format may have changed")
     return result
 
 
@@ -195,8 +246,20 @@ def ts(value: object) -> str:
 def main() -> None:
     originals = parse_original_records(SOURCE_CATALOG.read_text(encoding="utf-8"))
     summaries = {item["id"]: item for item in json.loads(SUMMARIES.read_text(encoding="utf-8"))}
-    if set(summaries) != {record["id"] for record in originals}:
-        raise RuntimeError("Original catalog and editorial summary IDs do not match")
+    original_ids = {record["id"] for record in originals}
+    if set(summaries) != original_ids:
+        raise RuntimeError(
+            f"Original catalog ({len(original_ids)} ids) and editorial summary "
+            f"({len(summaries)} ids) IDs do not match: "
+            f"missing summaries={sorted(original_ids - set(summaries))}, "
+            f"extra summaries={sorted(set(summaries) - original_ids)}"
+        )
+    missing_category_overrides = sorted(original_ids - set(CATEGORY_OVERRIDES))
+    if missing_category_overrides:
+        raise RuntimeError(
+            "CATEGORY_OVERRIDES is missing an entry for the following catalog "
+            f"IDs (every record needs a human-assigned category): {missing_category_overrides}"
+        )
 
     lines = [
         "// 光学の航路: 特許の原題と一般向けの整理を並べ、原典への導線を保つ。",
@@ -232,7 +295,7 @@ def main() -> None:
         lines.append("  {")
         lines.append(f"    id: {ts(record['id'])},")
         lines.append(f"    title: {ts(title)},")
-        lines.append(f"    originalTitle: {ts(record['title'])},")
+        lines.append(f"    originalTitle: {ts(record['originalTitle'])},")
         lines.append(f"    priority: {ts(record['priority'])},")
         lines.append(f"    published: {ts(record['published'])},")
         lines.append(f"    regions: {ts(record['regions'])},")

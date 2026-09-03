@@ -1,7 +1,20 @@
 """Create source-grounded Japanese summaries for the patent catalog.
 
-Input is the deterministic retrieval JSON produced by fetch_patent_details.py.
-All outputs are constrained by a JSON schema and preserve the source URL for review.
+Input is the deterministic retrieval JSON produced by fetch_patent_details.py
+(research/raw_google_patents.json), for whatever set of publication numbers
+that file currently contains. All outputs are constrained by a JSON schema
+and preserve the source URL for review. Requires OPENAI_API_KEY; this is an
+editorial-drafting aid for a human reviewer, not something the automated
+new-patent-detection workflow runs.
+
+2026-09 review note: this previously required the input to contain exactly
+53 records, an assumption left over from when the catalog only covered the
+assignee=Shimadzu search. The check now only requires a non-empty, error-free
+input, since the catalog's size is expected to change over time (it now also
+covers assignee=Materials Science patents, plus whatever
+check_new_patents.py finds later). Not run against a live OpenAI call during
+this review - see the script's README-equivalent note in
+docs/patent-catalog-update.md.
 """
 
 from __future__ import annotations
@@ -122,8 +135,8 @@ def summarize(record: dict) -> dict:
 
 def main() -> None:
     raw = json.loads(INPUT.read_text(encoding="utf-8"))
-    if len(raw) != 53 or any("error" in item for item in raw):
-        raise RuntimeError("Input must contain 53 successful source records")
+    if not raw or any("error" in item for item in raw):
+        raise RuntimeError("Input must be non-empty and contain only successful source records")
 
     results: list[dict] = []
     with futures.ThreadPoolExecutor(max_workers=MAX_WORKERS) as pool:

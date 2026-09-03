@@ -1,0 +1,58 @@
+{
+  "_comment": "SYNTHETIC FIXTURE - NOT a real Google Patents response. Hand-written to mimic the documented shape of https://patents.google.com/xhr/query (results.cluster[].result[].patent.publication_number, .title, .priority_date, .publication_date, .country_code, results.total_num_results). This environment had no network access to patents.google.com when this was authored, so the real response has not been captured or diffed against this shape. Treat scripts/gpatents.py's parse_search_payload() as the single place to fix if the real shape differs.",
+  "results": {
+    "total_num_results": 3,
+    "cluster": [
+      {
+        "result": [
+          {
+            "patent": {
+              "publication_number": "JP2019132766A",
+              "title": "試験結果評価方法および材料試験機",
+              "priority_date": "20180201",
+              "publication_date": "20190808",
+              "country_code": "JP",
+              "inventor": "Toru MATSUURA",
+              "assignee": "Shimadzu Corp"
+            }
+          },
+          {
+            "patent": {
+              "publication_number": "JP2099999999A",
+              "title": "架空の新規公開公報（テスト用）",
+              "priority_date": "20240101",
+              "publication_date": "20250101",
+              "country_code": "JP",
+              "inventor": "Toru MATSUURA",
+              "assignee": "Materials Science K.K."
+            }
+          },
+          {
+            "patent": {
+              "publication_number": "",
+              "title": "publication_number が空の不正エントリ（無視されるべき）",
+              "priority_date": "20240101",
+              "publication_date": "20250101",
+              "country_code": "JP"
+            }
+          }
+        ]
+      },
+      {
+        "result": [
+          {
+            "patent": {
+              "publication_number": "JP2016080631A",
+              "title": "材料試験機",
+              "priority_date": "20141024",
+              "publication_date": "20160516",
+              "country_code": "JP",
+              "inventor": "Toru MATSUURA",
+              "assignee": "Shimadzu Corp"
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
