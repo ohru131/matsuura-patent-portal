@@ -1,0 +1,25 @@
+{
+  "checked_at_utc": "2026-09-03T07:37:30Z",
+  "search_query_url": "https://patents.google.com/?inventor=Matsuura+Toru&assignee=shimadzu,Materials+Science",
+  "xhr_url": "https://patents.google.com/xhr/query?url=inventor%3DMatsuura%2BToru%26assignee%3Dshimadzu%2CMaterials%2BScience%26num%3D100&exp=",
+  "known_catalog_count": 55,
+  "fetched_total_num_results": 55,
+  "new_patents": [
+    {
+      "id": "JP2022076153A",
+      "title": " Material testing machine and controller for material testing",
+      "priority_date": "2020-11-09",
+      "publication_date": "2022-05-19",
+      "country_code": "",
+      "google_patents_url": "https://patents.google.com/patent/JP2022076153A/ja"
+    },
+    {
+      "id": "JP2022107416A",
+      "title": " Fatigue tester management device and fatigue tester management system",
+      "priority_date": "2021-01-08",
+      "publication_date": "2022-07-21",
+      "country_code": "",
+      "google_patents_url": "https://patents.google.com/patent/JP2022107416A/ja"
+    }
+  ]
+}
