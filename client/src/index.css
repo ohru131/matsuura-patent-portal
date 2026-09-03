@@ -6,7 +6,7 @@
  * モダン化ノート:
  * 配色（藍 #071e38 / 生成り #f5f0e7 / 朱 #B63E2E / 金 #d9ad53）はそのまま、
  * 角丸・柔らかい影・大きめの余白・整理されたタイポ階層・44px以上のタップ領域を足している。
- * 「航路線」演出（editorial-section / route-rail / route-node / measurement-ring / optical-route）は
+ * 「航路線」演出（editorial-section / route-rail / route-node / measurement-ring）は
  * 世界観の資産として維持する。
  */
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+JP:wght@400;500;600&family=Noto+Serif+JP:wght@500;600;700&display=swap');
@@ -119,11 +119,6 @@
   .nav-link.is-active { color: #fff; }
   .header-action { display: inline-flex; min-height: 44px; align-items: center; gap: 0.45rem; border: 1px solid rgba(236, 219, 169, .72); border-radius: var(--radius-md); padding: .55rem 1rem; font-size: .78rem; color: #f4e7bb; transition: background-color 180ms cubic-bezier(0.23, 1, 0.32, 1), color 180ms cubic-bezier(0.23, 1, 0.32, 1); }
   .header-action:hover { background: #f4e7bb; color: var(--navy); }
-  .primary-action { display: inline-flex; min-height: 44px; align-items: center; gap: .6rem; border-radius: var(--radius-md); background: var(--vermillion); padding: .9rem 1.25rem; font-size: .9rem; font-weight: 600; color: #fff8f0; box-shadow: var(--shadow-soft); transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1), background-color 160ms cubic-bezier(0.23, 1, 0.32, 1), box-shadow 160ms cubic-bezier(0.23, 1, 0.32, 1); }
-  .primary-action:hover { background: #cd4c3b; transform: translateY(-2px); box-shadow: var(--shadow-soft-lg); }
-  .primary-action:active { transform: scale(.97); }
-  .secondary-action { display: inline-flex; min-height: 44px; align-items: center; gap: .45rem; border-bottom: 1px solid rgba(255,255,255,.7); padding: .7rem .15rem; font-size: .9rem; color: #fff; transition: color 180ms cubic-bezier(0.23, 1, 0.32, 1); }
-  .secondary-action:hover { color: #e7c875; }
   .stat-block { padding: 1.75rem 1.6rem; }
   .stat-number { font-family: var(--font-mono); font-size: clamp(1.25rem, 2.2vw, 1.9rem); letter-spacing: -.06em; color: var(--navy-soft); }
   .stat-label { margin-top: .55rem; font-size: .8rem; line-height: 1.7; color: #637789; }
@@ -176,7 +171,6 @@
   .patent-keywords span { margin-right: .55rem; font-family: var(--font-mono); font-size: .64rem; letter-spacing: .08em; color: #9a7b50; }
   .detail-route-section::before { position: absolute; z-index: 2; top: 2rem; bottom: 2rem; left: calc(max(1.25rem, (100% - 1440px) / 2 + 1.25rem)); width: 1px; background: repeating-linear-gradient(to bottom, #e4c679 0 4px, transparent 4px 11px); content: ""; opacity: .75; }
   .detail-route-section::after { position: absolute; z-index: 2; top: 1.45rem; left: calc(max(1.25rem, (100% - 1440px) / 2 + 1.25rem) - .31rem); height: .65rem; width: .65rem; border: 1px solid #e4c679; border-radius: 999px; background: #0a2741; box-shadow: 0 0 0 4px #0a2741; content: ""; }
-  .optical-route { position: absolute; z-index: 1; right: 8%; top: 15%; height: 13rem; width: 38rem; border-top: 1px dashed rgba(240, 211, 132, .6); border-radius: 50%; box-shadow: 0 -2.6rem 0 -2.55rem rgba(240,211,132,.42), 0 2.6rem 0 -2.55rem rgba(240,211,132,.32); transform: rotate(-13deg); }
   .research-line { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 1rem; border-bottom: 1px solid #d8cbbb; padding: 1.25rem 0; font-size: .95rem; line-height: 1.9; color: #5c7284; }
   .research-line svg { margin-top: .45rem; color: var(--vermillion-strong); }
 

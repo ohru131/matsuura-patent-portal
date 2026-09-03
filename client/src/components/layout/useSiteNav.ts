@@ -5,25 +5,32 @@ import { NAV_ITEMS } from "./navItems";
 /**
  * Header / MobileNav で共有するナビゲーションのロジック。
  *
- * wouter の useLocation はパス名だけを見て変化を検知するため、トップページ（"/"）に
- * いる状態で "/#work" のようなハッシュだけが変わるリンクを押しても、パス名は
- * "/" → "/" のままで再レンダリングが起きない（= ScrollToTop の効果が発火しない）。
- * そのため、location === "/" のときはここで直接 scrollIntoView するフォールバックを持つ。
- * 別ページ（例: /patents）からの遷移は navigate() でパス変更を起こし、
- * ScrollToTop 側がマウント後にハッシュを見てスクロールする。
+ * カタログページ（Patents.tsx）は "/" と "/patents" の両方にマウントされる同一コンポーネント。
+ * NAV_ITEMS はすべてページ内アンカー（"#map" 等）なので、どちらのパスにいても同じロジックで
+ * スクロール・現在地判定ができるようにしている。
+ *
+ * wouter の useLocation はパス名だけを見て変化を検知するため、カタログページにいる状態で
+ * ハッシュだけが変わるリンクを押しても、パス名は変わらず再レンダリングが起きない
+ * （= ScrollToTop の効果が発火しない）。そのため、カタログページにいる間はここで直接
+ * scrollIntoView するフォールバックを持つ。カタログページ以外（NotFound 等）からアンカーへ
+ * 遷移する場合は navigate() でパス変更を起こし、ScrollToTop 側がマウント後にハッシュを見て
+ * スクロールする。
  */
+const CATALOG_PATHS = ["/", "/patents"];
+
 export function useSiteNav() {
   const [location, navigate] = useLocation();
   const [activeHash, setActiveHash] = useState("");
+  const isCatalogRoute = CATALOG_PATHS.includes(location);
 
   useEffect(() => {
-    if (location !== "/") {
+    if (!isCatalogRoute) {
       setActiveHash("");
       return;
     }
 
-    const sectionIds = NAV_ITEMS.filter((item) => item.href.startsWith("/#")).map((item) =>
-      item.href.slice(2),
+    const sectionIds = NAV_ITEMS.filter((item) => item.href.startsWith("#")).map((item) =>
+      item.href.slice(1),
     );
     const elements = sectionIds
       .map((id) => document.getElementById(id))
@@ -43,19 +50,22 @@ export function useSiteNav() {
 
     elements.forEach((el) => observer.observe(el));
     return () => observer.disconnect();
-  }, [location]);
+  }, [location, isCatalogRoute]);
 
   const isActive = (href: string) => {
-    if (href === "/patents") return location === "/patents";
-    if (href.startsWith("/#")) return location === "/" && activeHash === href.slice(1);
+    if (href.startsWith("#")) return isCatalogRoute && activeHash === href;
     return false;
   };
 
   const navigateTo = (href: string) => {
-    if (href.startsWith("/#") && location === "/") {
-      const id = href.slice(2);
-      document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
-      window.history.replaceState(null, "", href);
+    if (href.startsWith("#")) {
+      if (isCatalogRoute) {
+        const id = href.slice(1);
+        document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+        window.history.replaceState(null, "", href);
+        return;
+      }
+      navigate(`/${href}`);
       return;
     }
     navigate(href);

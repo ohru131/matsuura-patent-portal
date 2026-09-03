@@ -4,13 +4,12 @@ export type NavItem = {
 };
 
 /**
- * サイト共通のページ内・ページ間ナビゲーション。
- * "/#xxx" はトップページ（Home.tsx）のセクションIDへのアンカー。
- * Home.tsx 側で id="work" / id="past" / id="journey" を用意する前提。
+ * サイト共通のページ内ナビゲーション。
+ * サイトは公開特許カタログ1ページ構成（"/" と "/patents" の両方に同じページが乗る）ため、
+ * ナビ項目はすべてカタログページ内のセクションIDへのアンカー（Patents.tsx の id="map" 等）。
  */
 export const NAV_ITEMS: NavItem[] = [
-  { href: "/#work", label: "いまの取り組み" },
-  { href: "/#past", label: "これまでの仕事" },
-  { href: "/#journey", label: "歩み" },
-  { href: "/patents", label: "特許実績" },
+  { href: "#map", label: "分類から探す" },
+  { href: "#catalog", label: "一覧・検索" },
+  { href: "#method", label: "調査について" },
 ];

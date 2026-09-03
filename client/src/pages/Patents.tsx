@@ -1,10 +1,11 @@
 /**
  * Style reminder — 光学の航路:
- * Home.tsx から特許カタログを移設した実績ページ。世界観（生成り地・航路の朱・罫線）は維持しつつ、
+ * サイト唯一のコンテンツページ（公開特許カタログ）。世界観（生成り地・航路の朱・罫線）は維持しつつ、
  * ヒーローは写真を使わず藍地＋SVG/CSSグラフィックで構成する（画像アセットは実在しないため）。
  */
 import { useMemo, useState } from "react";
 import {
+  ArrowUp,
   ArrowUpRight,
   BookOpen,
   Compass,
@@ -37,7 +38,6 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { useSiteNav } from "@/components/layout/useSiteNav";
 import { useDocumentMeta } from "@/hooks/useDocumentMeta";
 
 const readingGuides = [
@@ -86,12 +86,9 @@ function RegionPills({ regions }: { regions: string[] }) {
 
 export default function Patents() {
   useDocumentMeta({
-    title: "特許実績｜松浦 融 ポートフォリオ",
-    description:
-      "株式会社島津製作所在籍中に発明者として関わった、材料試験機の計測・制御・遠隔管理に関する公開特許53件を、技術分野ごとに分類して掲載しています。",
+    title: "公開特許カタログ｜松浦 融",
+    description: `材料試験機の計測・制御・遠隔管理に関する発明の公開特許${patents.length}件を、技術の役割ごとに${patentCategories.length}分類して掲載しています。`,
   });
-
-  const { navigateTo } = useSiteNav();
 
   const [activeCategory, setActiveCategory] = useState<PatentCategory | "all">("all");
   const [activeYear, setActiveYear] = useState("all");
@@ -180,12 +177,11 @@ export default function Patents() {
               PATENT RECORD / 松浦融
             </p>
             <h1 className="font-serif text-4xl leading-[1.2] tracking-[-0.03em] sm:text-5xl lg:text-6xl">
-              公開特許 53件。
+              公開特許 {patents.length}件。
             </h1>
             <p className="jp-wrap mt-7 max-w-2xl text-base leading-8 text-[#d5dfe7] sm:text-lg">
-              株式会社島津製作所に在籍中、材料試験機の計測・制御・遠隔管理に関する開発に携わりました。
-              その成果は公開公報として残っており、技術の役割ごとに10分類して掲載しています。
-              特許を受ける権利の帰属先は出願人である企業です。
+              材料試験機の計測・制御・遠隔管理に関する発明の公開公報を、技術の役割ごとに
+              {patentCategories.length}分類して掲載しています。
             </p>
           </div>
         </div>
@@ -196,9 +192,9 @@ export default function Patents() {
           <div className="stat-block">
             <p className="stat-number">{patents.length}</p>
             <p className="stat-label">
-              Google Patentsで確認した
+              発明者として名前が記載された
               <br />
-              公開公報の起点
+              公開公報
             </p>
           </div>
           <div className="stat-block">
@@ -517,7 +513,9 @@ export default function Patents() {
               <BookOpen size={18} />
               <p>
                 Google Patentsで、発明者を <span className="font-mono text-[13px]">Toru Matsuura</span>、出願人を{" "}
-                <span className="font-mono text-[13px]">Shimadzu</span> として検索し、表示された53件を起点に編集しています。
+                <span className="font-mono text-[13px]">Shimadzu</span> および{" "}
+                <span className="font-mono text-[13px]">Materials Science</span> として検索し、表示された
+                {patents.length}件を編集しています。
               </p>
             </div>
             <div className="research-line">
@@ -533,7 +531,7 @@ export default function Patents() {
             </div>
             <a
               className="mt-7 inline-flex min-h-11 items-center gap-2 text-sm font-medium text-vermillion-strong"
-              href="https://patents.google.com/?inventor=Matsuura+Toru&assignee=Shimadzu&num=100"
+              href="https://patents.google.com/?inventor=Matsuura+Toru&assignee=shimadzu,Materials+Science"
               rel="noreferrer"
               target="_blank"
             >
@@ -544,16 +542,13 @@ export default function Patents() {
       </section>
 
       <section className="section-shell pb-24 pt-4 lg:pb-28">
-        <a
+        <button
           className="text-link"
-          href="/"
-          onClick={(event) => {
-            event.preventDefault();
-            navigateTo("/");
-          }}
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          type="button"
         >
-          トップへ戻る
-        </a>
+          ページの先頭へ戻る <ArrowUp size={16} />
+        </button>
       </section>
     </div>
   );

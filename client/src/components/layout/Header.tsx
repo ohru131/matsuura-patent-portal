@@ -4,8 +4,9 @@ import { NAV_ITEMS } from "./navItems";
 import { useSiteNav } from "./useSiteNav";
 
 /**
- * サイト共通の固定ヘッダー。左にブランド（BrandMark＋氏名）、右にページ間ナビゲーション。
- * ページ内アンカー（"/#work" 等）とページ遷移（"/patents"）の両方を扱う挙動は useSiteNav に集約。
+ * サイト共通の固定ヘッダー。左にブランド（BrandMark＋氏名）、右にページ内ナビゲーション。
+ * サイトは公開特許カタログ1ページ構成のため、ナビ項目はすべてページ内アンカー。
+ * その挙動（現在地判定・スクロール）は useSiteNav に集約。
  */
 export default function Header() {
   const { isActive, handleNavClick } = useSiteNav();
@@ -14,7 +15,7 @@ export default function Header() {
     <header className="site-header fixed inset-x-0 top-0 z-50 border-b border-white/10 text-white">
       <div className="mx-auto flex h-[76px] max-w-[1440px] items-center justify-between gap-4 px-5 sm:px-8 lg:px-12">
         <a
-          aria-label="松浦融 ポートフォリオのトップへ"
+          aria-label="公開特許カタログのトップへ"
           className="group flex min-h-11 items-center gap-3"
           href="/"
           onClick={(event) => handleNavClick(event, "/")}
