@@ -209,11 +209,21 @@ def parse_original_records(text: str) -> list[dict]:
     # the "id: ..." / "title: ..." example in the module docstring), so each
     # field is matched independently rather than assuming a single-line
     # object literal. re.DOTALL lets ".*?" cross newlines; the fields are
-    # matched in the order they appear in PatentRecord (id, title, ...,
-    # regions), so the non-greedy match stops at the correct occurrence.
+    # matched in the order they appear in PatentRecord (id, title,
+    # originalTitle, priority, published, ..., regions), so the non-greedy
+    # match stops at the correct occurrence.
+    #
+    # NOTE: `originalTitle` (not the display `title`) is captured here and is
+    # what main() writes back out as `originalTitle` below. The catalog is
+    # already in the enriched PatentRecord shape (title = display name,
+    # originalTitle = the real patent title), so re-deriving originalTitle
+    # from the display `title` field would silently duplicate it. `title`
+    # itself is only captured for readability/debugging; main() always
+    # recomputes the display title from TITLE_OVERRIDES / plain_title.
     pattern = re.compile(
         r'id:\s*"(?P<id>JP[0-9A-Z]+)".*?'
         r'title:\s*"(?P<title>[^"]+)".*?'
+        r'originalTitle:\s*"(?P<originalTitle>[^"]+)".*?'
         r'priority:\s*"(?P<priority>[^"]+)".*?'
         r'published:\s*"(?P<published>[^"]+)".*?'
         r'regions:\s*\[(?P<regions>[^\]]*)\]',
@@ -285,7 +295,7 @@ def main() -> None:
         lines.append("  {")
         lines.append(f"    id: {ts(record['id'])},")
         lines.append(f"    title: {ts(title)},")
-        lines.append(f"    originalTitle: {ts(record['title'])},")
+        lines.append(f"    originalTitle: {ts(record['originalTitle'])},")
         lines.append(f"    priority: {ts(record['priority'])},")
         lines.append(f"    published: {ts(record['published'])},")
         lines.append(f"    regions: {ts(record['regions'])},")

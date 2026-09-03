@@ -1,0 +1,129 @@
+name: Check for new patents
+
+# Detects newly published patents matching the tracked Google Patents search
+# (inventor: Matsuura Toru / assignee: Shimadzu or Materials Science) and, if
+# any are found, opens or updates a pull request that lists them for human
+# review. It never edits client/src/data/patents.ts itself - see
+# docs/patent-catalog-update.md for the human follow-up steps.
+#
+# Design notes:
+#   - No third-party GitHub Action is used anywhere in this workflow (not
+#     even actions/checkout or actions/setup-python). This was a deliberate
+#     choice made because this workflow was authored in a sandboxed
+#     environment with no network access to github.com/api.github.com, so a
+#     third-party action's commit SHA could not be looked up and verified
+#     before pinning it (the project's own guidance is to pin third-party
+#     actions by commit SHA, never by a mutable tag). Rather than pin an
+#     unverified SHA, the repo is checked out with plain `git clone` and the
+#     runner's preinstalled Python 3 / `gh` CLI are used directly - both
+#     ship on GitHub-hosted `ubuntu-latest` runners already, so nothing
+#     external needs to be trusted or pinned. If you'd rather use
+#     actions/checkout + actions/setup-python, pin them to a commit SHA you
+#     have verified yourself (e.g. from the tag's page on GitHub) and swap
+#     the "Check out repository" / "Set up Python" steps below.
+#   - IMPORTANT: scripts/check_new_patents.py has not been exercised against
+#     a live Google Patents response (same network restriction as above). Its
+#     JSON parsing was verified only against a synthetic fixture (see
+#     scripts/tests/). Please run this workflow once by hand
+#     (workflow_dispatch) and read the "Run new-patent detection" step's log
+#     to confirm the fetched count looks sane before relying on the schedule.
+#     See docs/patent-catalog-update.md for details.
+
+on:
+  schedule:
+    # Every two months (odd months), 1st day, 00:00 UTC = 09:00 JST (UTC+9)
+    # the same day. Minute/hour are fixed at 0 0 so this does not depend on
+    # the "hourly starting now" anchoring GitHub applies to sub-daily cron.
+    - cron: "0 0 1 1,3,5,7,9,11 *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: check-new-patents
+  cancel-in-progress: false
+
+env:
+  PENDING_BRANCH: chore/patent-catalog-update
+  PENDING_FILE: research/pending_new_patents.json
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        run: |
+          set -euo pipefail
+          git clone --depth 1 --branch "${GITHUB_REF_NAME}" \
+            "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" .
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Set up Python dependency
+        run: |
+          set -euo pipefail
+          python3 --version
+          pip install --user requests==2.32.3
+
+      - name: Run new-patent detection
+        id: detect
+        run: |
+          set +e
+          python3 scripts/check_new_patents.py
+          code=$?
+          set -e
+          echo "code=${code}" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Fail the run on a detection error
+        if: steps.detect.outputs.code == '2'
+        run: |
+          echo "::error::check_new_patents.py exited with code 2 (search failed or looked abnormal)." \
+               "See the 'Run new-patent detection' step's log for the reason." \
+               "No branch was pushed and no pull request was created or updated." >&2
+          exit 1
+
+      - name: Report no new patents
+        if: steps.detect.outputs.code == '0'
+        run: echo "No new patents found. Nothing to commit."
+
+      - name: Commit pending file and open/update pull request
+        if: steps.detect.outputs.code == '1'
+        run: |
+          set -euo pipefail
+
+          # The branch this run checked out (the default branch for schedule
+          # runs, or whichever branch a manual dispatch was started from).
+          # github.event.repository.default_branch is not guaranteed to be
+          # present in the schedule event payload, so use GITHUB_REF_NAME:
+          # it is always set and matches the clone above.
+          BASE_BRANCH="${GITHUB_REF_NAME}"
+
+          git checkout -B "${PENDING_BRANCH}"
+          git add "${PENDING_FILE}"
+          git commit -m "chore: 新着特許候補を検知 ($(date -u +%Y-%m-%dT%H:%M:%SZ))"
+
+          # This branch is machine-owned and fully regenerated on every run
+          # (the pending file's timestamp always changes), so a force-push is
+          # intentional here rather than trying to merge/rebase history.
+          git push --force origin "HEAD:${PENDING_BRANCH}"
+
+          PR_BODY_FILE="$(mktemp)"
+          python3 scripts/render_pr_body.py "${PENDING_FILE}" > "${PR_BODY_FILE}"
+
+          EXISTING_PR="$(gh pr list --head "${PENDING_BRANCH}" --base "${BASE_BRANCH}" --state open --json number --jq '.[0].number // empty')"
+
+          if [ -n "${EXISTING_PR}" ]; then
+            gh pr edit "${EXISTING_PR}" --body-file "${PR_BODY_FILE}"
+            echo "Updated existing pull request #${EXISTING_PR}"
+          else
+            gh pr create \
+              --base "${BASE_BRANCH}" \
+              --head "${PENDING_BRANCH}" \
+              --title "chore: 新着特許候補の検知（要レビュー）" \
+              --body-file "${PR_BODY_FILE}"
+            echo "Created a new pull request"
+          fi
