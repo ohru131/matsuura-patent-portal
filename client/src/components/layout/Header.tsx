@@ -1,4 +1,5 @@
 import BrandMark from "@/components/BrandMark";
+import { Link } from "wouter";
 import MobileNav from "./MobileNav";
 import { NAV_ITEMS } from "./navItems";
 import { useSiteNav } from "./useSiteNav";
@@ -14,11 +15,16 @@ export default function Header() {
   return (
     <header className="site-header fixed inset-x-0 top-0 z-50 border-b border-white/10 text-white">
       <div className="mx-auto flex h-[76px] max-w-[1440px] items-center justify-between gap-4 px-5 sm:px-8 lg:px-12">
-        <a
+        {/*
+          wouter の Link を使うことで、GitHub Pages のサブディレクトリ配下
+          （base 付き）でも、rendered された href に base が含まれる
+          （素の <a href="/"> だと、修飾キー付きクリックや右クリックでの
+          「新しいタブで開く」時にリポジトリ名なしのルートへ飛んでしまう）。
+        */}
+        <Link
           aria-label="公開特許カタログのトップへ"
           className="group flex min-h-11 items-center gap-3"
           href="/"
-          onClick={(event) => handleNavClick(event, "/")}
         >
           <BrandMark className="h-10 w-10 shrink-0 sm:h-11 sm:w-11" variant="onDark" />
           <span className="leading-none">
@@ -27,7 +33,7 @@ export default function Header() {
               TORU MATSUURA
             </span>
           </span>
-        </a>
+        </Link>
 
         <nav
           aria-label="主なページ内ナビゲーション"
