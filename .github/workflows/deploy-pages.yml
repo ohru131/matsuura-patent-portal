@@ -1,0 +1,111 @@
+name: Deploy to GitHub Pages
+
+# Builds the Vite SPA and publishes it to GitHub Pages under the
+# repository's project-page subpath (e.g. https://ohru131.github.io/matsuura-patent-portal/).
+#
+# Design notes:
+#   - Only the static client (client/ -> dist/public) is deployed. server/ is
+#     an Express server used for other hosting targets and is not needed by
+#     Pages, so this workflow calls `vite build` directly instead of the
+#     `pnpm build` script (which also esbuild-bundles server/index.ts).
+#   - vite.config.ts intentionally leaves `base` unset (defaults to "/") so
+#     that `pnpm dev` / `pnpm build` keep working unchanged for local use and
+#     for any other deployment target. This workflow instead passes
+#     `--base=/<repo-name>/` on the command line, derived from
+#     github.event.repository.name so it keeps working if the repo is ever
+#     renamed or forked under another name.
+#   - GitHub Pages has no server-side routing, so a deep link (e.g. .../patents)
+#     would 404 on a real page load. The classic workaround is to also publish
+#     the built index.html as 404.html: GitHub Pages serves 404.html for any
+#     unknown path, and the SPA's own router then renders the right view from
+#     the URL. See client/src/App.tsx (wouter base) for the client-side half
+#     of this.
+#   - .nojekyll disables GitHub Pages' Jekyll processing, which would
+#     otherwise ignore files/folders starting with "_" (Vite's default asset
+#     naming does not use "_", but this is cheap insurance and is the
+#     documented convention for Pages deployments of pre-built static sites).
+#   - Only official actions/* Actions are used (checkout, setup-node,
+#     configure-pages, upload-pages-artifact, deploy-pages). No third-party
+#     Actions. pnpm itself is activated via `corepack enable`, which reads
+#     the exact version pinned in package.json's "packageManager" field, so
+#     no third-party pnpm/action-setup is needed either.
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # corepack reads package.json's "packageManager" field and activates
+      # the exact pnpm version it pins, without relying on a third-party
+      # setup action.
+      - name: Enable pnpm via corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # GitHub Pages serves this repo under /<repo-name>/, so the built
+      # assets must reference that subpath instead of the default "/".
+      # --base is passed on the command line (not baked into vite.config.ts)
+      # so that local `pnpm dev` / `pnpm build` remain unaffected.
+      - name: Build the static site (client only, with the Pages base path)
+        run: pnpm exec vite build --base=/${{ github.event.repository.name }}/
+
+      # GitHub Pages has no server-side SPA fallback: a hard/deep-link
+      # request to a path other than "/" would 404. Publishing a copy of
+      # index.html as 404.html makes Pages serve the SPA shell for any
+      # unknown path, and the client-side router (wouter, base-aware) then
+      # renders the right page from the URL.
+      - name: Add 404.html SPA fallback
+        run: cp dist/public/index.html dist/public/404.html
+
+      # Prevent GitHub Pages' Jekyll processing from ignoring any
+      # dotfile/underscore-prefixed output.
+      - name: Disable Jekyll processing
+        run: touch dist/public/.nojekyll
+
+      # Configures the Pages build environment for this repository and
+      # enables Pages automatically if it has not been turned on yet, so no
+      # manual Settings > Pages step is required beforehand.
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - name: Upload build artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist/public
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
