@@ -4,8 +4,8 @@
  * 一つのマークに重ねたインラインSVG。画像アセットを使わず、currentColor 経由で親から色を制御する。
  *
  * variant:
- *  - "onDark"  … 藍地の上に置く（金系の線）
- *  - "onLight" … 生成り地の上に置く（藍系の線）
+ *  - "onDark"  … 濃色地の上に置く（金系の線）
+ *  - "onLight" … 白地の上に置く（藍の線）
  */
 type BrandMarkProps = {
   className?: string;
@@ -14,7 +14,7 @@ type BrandMarkProps = {
 
 const STROKE_COLOR: Record<NonNullable<BrandMarkProps["variant"]>, string> = {
   onDark: "#e7cd88",
-  onLight: "#123650",
+  onLight: "#1d4e89",
 };
 
 export default function BrandMark({ className, variant = "onDark" }: BrandMarkProps) {
