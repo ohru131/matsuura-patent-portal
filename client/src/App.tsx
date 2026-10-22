@@ -1,4 +1,3 @@
-/** Style reminder — 光学の航路: 濃藍のヒーローと生成りの研究資料面を往復し、常に高い文字コントラストを保つ。 */
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";

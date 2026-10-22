@@ -32,19 +32,19 @@ export default function MobileNav() {
           className="mobile-nav-trigger md:hidden"
           type="button"
         >
-          <Menu aria-hidden="true" size={22} />
+          <Menu aria-hidden="true" size={20} />
         </button>
       </SheetTrigger>
-      <SheetContent className="w-[85vw] max-w-sm bg-[#f5f0e7] p-0" side="right">
-        <SheetHeader className="border-b border-[#d8cbb9] px-5 py-5">
+      <SheetContent className="w-[85vw] max-w-sm bg-paper p-0" side="right">
+        <SheetHeader className="border-b border-line px-5 py-5">
           <SheetTitle asChild>
             <span className="flex items-center gap-3">
-              <BrandMark className="h-9 w-9" variant="onLight" />
-              <span className="font-serif text-base tracking-[0.1em] text-[#123650]">松浦 融</span>
+              <BrandMark className="h-8 w-8" variant="onLight" />
+              <span className="text-base font-bold tracking-[0.06em] text-ink">松浦 融</span>
             </span>
           </SheetTitle>
         </SheetHeader>
-        <nav aria-label="主なページ内ナビゲーション（モバイル）" className="flex flex-col gap-1 p-4">
+        <nav aria-label="ページ内ナビゲーション（モバイル）" className="flex flex-col gap-1 p-4">
           {NAV_ITEMS.map((item) => (
             <a
               aria-current={isActive(item.href) ? "page" : undefined}
