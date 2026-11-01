@@ -1,0 +1,25 @@
+{
+  "checked_at_utc": "2026-11-01T04:52:23Z",
+  "search_query_url": "https://patents.google.com/?inventor=Matsuura+Toru&assignee=shimadzu,Materials+Science",
+  "xhr_url": "https://patents.google.com/xhr/query?url=inventor%3DMatsuura%2BToru%26assignee%3Dshimadzu%2CMaterials%2BScience%26num%3D100&exp=",
+  "known_catalog_count": 57,
+  "fetched_total_num_results": 57,
+  "new_patents": [
+    {
+      "id": "JP2026035012A",
+      "title": " Test apparatus, display control method, and program",
+      "priority_date": "2024-08-19",
+      "publication_date": "2026-03-04",
+      "country_code": "",
+      "google_patents_url": "https://patents.google.com/patent/JP2026035012A/ja"
+    },
+    {
+      "id": "JP2026046601A",
+      "title": " Material testing systems, methods, and programs",
+      "priority_date": "2024-09-03",
+      "publication_date": "2026-03-13",
+      "country_code": "",
+      "google_patents_url": "https://patents.google.com/patent/JP2026046601A/ja"
+    }
+  ]
+}
